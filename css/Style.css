@@ -1,0 +1,166 @@
+:root {
+    --bg-gradient-start: #e0eafc;
+    --bg-gradient-end: #cfdef3;
+    --button-bg: #3498db;
+    --button-hover-bg: #2980b9;
+    --button-text: #000000;
+    --text-color: #000000;
+    --input-border: #ccc;
+    --focus-ring: rgba(52, 152, 219, 0.3);
+    --card-bg: rgba(255, 255, 255, 0.9);
+    --shadow: rgba(0, 0, 0, 0.1);
+}
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'League Spartan', sans-serif;
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+/* menu de chargements */
+.Menu-btns {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background-color: var(--card-bg);
+    border-radius: 1rem;
+    box-shadow: 0 10px 25px var(--shadow);
+    width: 80%;
+    animation: fadeIn 1s ease-in-out;
+}
+
+.Menu-btns img {
+    margin-bottom: 1rem;
+    width: 40%;
+    height: auto;
+}
+
+.Menu-btns button {
+    height: fit-content;
+    min-height: 80px;
+    width: 100%;
+    margin: 0.5rem 0;
+    cursor: pointer;
+    background: var(--button-bg);
+    color: var(--button-text);
+    border: none;
+    border-radius: 5px;
+    font-size: 1em;
+    font-family: 'Orbitron', sans-serif;
+    text-transform: uppercase;
+    font-weight: 500;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 10px var(--shadow);
+}
+
+.Menu-btns button:hover {
+    background: var(--button-hover-bg);
+    transform: scale(1.01);
+    box-shadow: 0 6px 15px var(--shadow);
+}
+
+.Menu-btns input {
+    height: fit-content;
+    min-height: 50px;
+    width: 100%;
+    margin: 0.5rem 0;
+    padding: 0 1rem;
+    border: 2px solid var(--button-bg);
+    border-radius: 5px;
+    font-size: 1.1em;
+    font-family: 'Orbitron', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    outline: none;
+    transition: all 0.3s ease;
+    background-color: #f9f9f9;
+    color: var(--text-color);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.Menu-btns input::placeholder {
+    color: #999;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.9em;
+    letter-spacing: 0.5px;
+}
+
+.Menu-btns input:focus {
+    border-color: var(--button-hover-bg);
+    box-shadow: 0 0 0 3px var(--focus-ring);
+    background-color: #fff;
+}
+/* --- Styles spécifiques pour la page Création de Partie --- */
+
+.Menu-btns h1 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2.5em;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--button-bg);
+    margin-bottom: 1.5rem;
+    letter-spacing: 2px;
+    text-align: center;
+}
+
+.Menu-btns label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1em;
+    font-weight: 600;
+    color: var(--button-bg);
+    text-transform: uppercase;
+    margin: 0.5rem 0 0.2rem 0;
+    display: block;
+    letter-spacing: 1px;
+}
+
+.Menu-btns button#create-btn,
+.Menu-btns button#start-btn {
+    min-height: 60px;
+    font-size: 1.2em;
+    font-weight: 700;
+    margin-top: 1rem;
+    background-color: var(--button-bg);
+    color: var(--button-text);
+    border-radius: 5px;
+    box-shadow: 0 5px 12px var(--shadow);
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.Menu-btns button#create-btn:hover,
+.Menu-btns button#start-btn:hover:not(:disabled) {
+    background-color: var(--button-hover-bg);
+    transform: scale(1.02);
+    box-shadow: 0 7px 18px var(--shadow);
+}
+
+.Menu-btns button#start-btn:disabled {
+    background-color: #aaa;
+    cursor: not-allowed;
+    box-shadow: none;
+    opacity: 0.6;
+}
+
+@media (max-width: 480px) {
+    .Menu-btns h1 {
+        font-size: 2em;
+    }
+    .Menu-btns button#create-btn,
+    .Menu-btns button#start-btn {
+        font-size: 1em;
+        min-height: 50px;
+    }
+    .Menu-btns label {
+        font-size: 0.9em;
+    }
+}
