@@ -19,7 +19,7 @@ const indexmenu = {
     }
 }
 
-const user_info = {
+export const user_info = {
     code: '',
     user_id: '',
     username: '',
@@ -49,7 +49,7 @@ const user_info = {
     },
 }
 
-const party_info = {
+export const party_info = {
     party_id: '',
     party_name: '',
     party_code: '',
