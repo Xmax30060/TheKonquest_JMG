@@ -15,37 +15,15 @@ const indexmenu = {
             party_owner: owner,
             party_members: [owner]
         });
-
-        // Envoi au backend
-        fetch("https://script.google.com/macros/s/AKfycbyjgkyWLvgt9365aqizyTgsF5xku4SWcFweY3kYbehc/dev", {
-            method: "POST",
-            body: JSON.stringify({
-                action: "create_party",
-                party_code: code,
-                party_name: name,
-                party_owner: owner
-            }),
-            headers: { "Content-Type": "application/json" }
-        }).then(() => alert("Partie créée avec le code : " + code));
+        envoyerDonnees();
+        alert("Partie créée avec le code : " + code);
     },
-
     join_party() {
         const user_id = user_info.get_user_id();
         const username = user_info.username;
         const party_code = prompt("Entrez le code de la partie :").toUpperCase();
-
         user_info.set_user_info({ user_id, username, code: party_code });
-
-        fetch("https://script.google.com/macros/s/AKfycbyjgkyWLvgt9365aqizyTgsF5xku4SWcFweY3kYbehc/dev", {
-            method: "POST",
-            body: JSON.stringify({
-                action: "join_party",
-                user_id,
-                username,
-                party_code
-            }),
-            headers: { "Content-Type": "application/json" }
-        }).then(() => alert("Tu as rejoint la partie " + party_code));
+        alert("Tu as rejoint la partie " + party_code));
     },
 
     join_party_by_code(){

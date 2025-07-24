@@ -94,15 +94,13 @@
 </head>
 <body>
 <div id="toolbar">
-    <button id="Back" href="index.html">Retour</button>
+    <a href="index.html"><button>Retour</button></a>
     <span id="loading" style="display:none; margin-left:10px; font-style:italic;">Chargement...</span>
 </div>
 <svg></svg>
 <div id="tooltip"></div>
-
 <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
 <script src="https://cdn.jsdelivr.net/npm/topojson@3"></script>
-
 <script>
     const svg = d3.select("svg");
     const width = window.innerWidth;
