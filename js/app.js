@@ -17,7 +17,7 @@ const indexmenu = {
         });
 
         // Envoi au backend
-        fetch("https://script.google.com/macros/s/AKfycbyZcFvGpsYoEEVFc3KBibK-zejc94Vf2Y2sBwl9jRubQAZ8zjS5v7xObKdDihSsuTztZw/exec", {
+        fetch("https://script.google.com/macros/s/AKfycbyjgkyWLvgt9365aqizyTgsF5xku4SWcFweY3kYbehc/dev", {
             method: "POST",
             body: JSON.stringify({
                 action: "create_party",
@@ -36,7 +36,7 @@ const indexmenu = {
 
         user_info.set_user_info({ user_id, username, code: party_code });
 
-        fetch("https://script.google.com/macros/s/AKfycbyZcFvGpsYoEEVFc3KBibK-zejc94Vf2Y2sBwl9jRubQAZ8zjS5v7xObKdDihSsuTztZw/exec", {
+        fetch("https://script.google.com/macros/s/AKfycbyjgkyWLvgt9365aqizyTgsF5xku4SWcFweY3kYbehc/dev", {
             method: "POST",
             body: JSON.stringify({
                 action: "join_party",
