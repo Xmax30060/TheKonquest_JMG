@@ -1,3 +1,4 @@
+
 const indexmenu = {
     create_party() {
         const code = Math.random().toString(36).substring(2, 10).toUpperCase();
