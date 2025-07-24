@@ -63,11 +63,14 @@
             alert("Veuillez entrer un nom d'utilisateur.");
             return;
         }
-        let partycode = localStorage.getItem("CurentPartyCode");
-        if (!partycode) partycode = "";
-        user_info.set_user_info(partycode, generatePlayerId(),nom,'');
-        localStorage.setItem("CurentPlayerId", user_info.get_user_info().id);
-        localStorage.setItem("CurentPlayerName", nom);
+        let partycode = localStorage.getItem("CurrentPartyCode") || "";
+
+        user_info.set_user_info({
+            code: partycode,
+            user_id: Date.now().toString(36) + '-' + Math.random().toString(36).substring(2, 8),
+            username: nom
+        });
+
         if (sessionStorage.getItem("Wait_user_profile") === 'true') {
             sessionStorage.removeItem("Wait_user_profile");
             window.location.href = "Creation-tab.html";

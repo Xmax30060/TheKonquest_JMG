@@ -1,8 +1,8 @@
 const indexmenu = {
     join_party_by_code(Code = null){
         if (!user_info.get_user_id()){
-            window.location.href = "Profil_Creation.html";
             sessionStorage.setItem("Wait_user_profile", 'true');
+            window.location.href = "Profil_Creation.html";
             return;
         }
         const user_id = user_info.get_user_id();
@@ -19,23 +19,26 @@ const indexmenu = {
         alert("Tu as rejoint la partie " + party_code);
     }
 }
+
 const user_info = {
     code: '',
     user_id: '',
     username: '',
     userTeritory: [],
+    userMoney : 0,
 
     get_user_info() {
         return {
             code: this.code,
             user_id: this.user_id,
             username: this.username,
-            userTeritory: this.userTeritory
+            userTeritory: this.userTeritory,
+            user_info : this.userMoney
         };
     },
 
-    set_user_info({ code, user_id, username, userTeritory = [] }) {
-        this.code = code;
+    set_user_info({ code_i = this.code, user_id = this.user_id, username = this.username, userTeritory = [] = this.userTeritory }) {
+        this.code = code_i;
         this.user_id = user_id;
         this.username = username;
         this.userTeritory = userTeritory;
@@ -84,7 +87,5 @@ function join_party(method, value = null) {
         console.error("Méthode de jointure inconnue :", method);
     }
 }
-function generatePlayerId() {
-    console.log("génération d'ID de joueur");
-    return '-' + Date.now().toString(36) + '-' + Math.random().toString(36).substring(2, 8);
-}
+
+window.user_info = user_info;
