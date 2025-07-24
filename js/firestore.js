@@ -1,11 +1,6 @@
-// Import Firebase modules depuis le CDN
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-import { getFirestore, collection, setDoc, getDocs, query, where, updateDoc, doc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+import { initializeApp } from "firebase/app";
+import { getFirestore, collection, doc, setDoc, getDocs, query, where, getDoc, updateDoc } from "firebase/firestore";
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
     apiKey: "AIzaSyBZWMlPN9SYdfSO1MmWrvX5D0NoZg_PxUo",
     authDomain: "thekonquest.firebaseapp.com",
@@ -20,7 +15,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-window.create_party = async function (name, owner) {
+window.create_party = async function () {
     try {
         const code = Math.random().toString(36).substring(2, 10).toUpperCase();
         const q = query(collection(db, "party"), where("code", "==", code));
