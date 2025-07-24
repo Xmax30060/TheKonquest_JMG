@@ -23,7 +23,7 @@ const indexmenu = {
         const username = user_info.username;
         const party_code = prompt("Entrez le code de la partie :").toUpperCase();
         user_info.set_user_info({ user_id, username, code: party_code });
-        alert("Tu as rejoint la partie " + party_code));
+        alert("Tu as rejoint la partie " + party_code);
     },
 
     join_party_by_code(){
