@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <title>Création de Partie - Jeu de Guerre</title>
   <link rel="stylesheet" href="css/Style.css" />
-
 </head>
 <body>
 <div class="Menu-btns">
@@ -20,47 +19,7 @@
   <button id="create-btn" onclick="create_party()">Créer la Partie</button>
   <button id="start-btn" onclick="window.location.href='carte.html'" disabled>Lancer la Partie (Maitre du Jeu)</button>
 </div>
+<script type="module" src="js/module.js"></script>
 <script src="js/app.js"></script>
-<script type="module">
-  // Import Firebase modules depuis le CDN
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-  const firebaseConfig = {
-  apiKey: "AIzaSyBZWMlPN9SYdfSO1MmWrvX5D0NoZg_PxUo",
-  authDomain: "thekonquest.firebaseapp.com",
-  projectId: "thekonquest",
-  storageBucket: "thekonquest.firebasestorage.app",
-  messagingSenderId: "552548750619",
-  appId: "1:552548750619:web:7afbbb365dd41d6e1a6fbe",
-  measurementId: "G-8K6DJDW3H1"
-  };
-  // Initialiser Firebase
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  // Exemple : Ajouter un document à Firestore
-  async function envoyerDonnees() {
-    try {
-      const docRef = await addDoc(collection(db, "messages"), {
-        nom: "Jean",
-        message: "Bonjour depuis GitHub Pages !",
-        timestamp: new Date()
-      });
-      console.log("Document ajouté avec ID :", docRef.id);
-    } catch (e) {
-      console.error("Erreur d'ajout :", e);
-    }
-  }
-
-  // Appeler la fonction
-  envoyerDonnees();
-</script>
 </body>
 </html>

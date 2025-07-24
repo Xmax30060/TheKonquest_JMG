@@ -1,36 +1,23 @@
 
 const indexmenu = {
-    create_party() {
-        const code = Math.random().toString(36).substring(2, 10).toUpperCase();
-        const owner = user_info.get_user_id(); // assure-toi qu'il est défini
-        const name = prompt("Nom de la partie ?") || "Partie sans nom";
-
-        document.getElementById("game-code").innerText = code;
-        document.getElementById("start-btn").disabled = false;
-
-        party_info.set_party_info({
-            party_id: code,
-            party_code: code,
-            party_name: name,
-            party_owner: owner,
-            party_members: [owner]
-        });
-        envoyerDonnees();
-        alert("Partie créée avec le code : " + code);
-    },
-    join_party() {
+    join_party_by_code(Code = null){
+        if (!user_info.get_user_id()){
+            window.location.href = "Profil_Creation.html";
+            sessionStorage.setItem("Wait_user_profile", 'true');
+            return;
+        }
         const user_id = user_info.get_user_id();
+        if (!Code) console.log("No code found");
         const username = user_info.username;
-        const party_code = prompt("Entrez le code de la partie :").toUpperCase();
-        user_info.set_user_info({ user_id, username, code: party_code });
-        alert("Tu as rejoint la partie " + party_code);
-    },
-
-    join_party_by_code(){
-
+        user_info.set_user_info({ user_id, username, Code });
+        join_party(Code, user_id);
+        localStorage.setItem("CurentPartyCode", Code);
+        alert("Tu as rejoint la partie " + Code);
     },
     join_last_party(){
-
+        const party_code = localStorage.getItem("CurentPartyCode");
+        if (party_code) db_join_party(party_code,user_info.user_id);
+        alert("Tu as rejoint la partie " + party_code);
     }
 }
 const user_info = {
@@ -83,24 +70,24 @@ const party_info = {
         };
     },
 
-    set_party_info({ party_id, party_name, party_code, party_owner, party_members, party_territory = [] }) {
-        this.party_id = party_id;
+    set_party_info({party_name, party_code, party_owner, party_members, party_territory = [] }) {
         this.party_name = party_name;
         this.party_code = party_code;
         this.party_owner = party_owner;
         this.party_members = party_members;
         this.party_territory = party_territory;
     },
-
-    get_party_id() {
-        return this.party_id;
-    },
-
-    set_party_id(id) {
-        this.party_id = id;
-    }
 }
 
-function create_party() {
-    indexmenu.create_party();
+function join_party(method, value = null) {
+    if (method === 'code' && value) {
+        indexmenu.join_party_by_code(value);
+    } else if (method === 'last') {
+        indexmenu.join_last_party();
+    } else {
+        console.error("Méthode de jointure inconnue :", method);
+    }
+}
+function generatePlayerId() {
+    return '-' + Date.now().toString(36) + '-' + Math.random().toString(36).substring(2, 8);
 }
