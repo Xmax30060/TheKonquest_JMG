@@ -1,4 +1,3 @@
-
 const indexmenu = {
     join_party_by_code(Code = null){
         if (!user_info.get_user_id()){
@@ -40,15 +39,12 @@ const user_info = {
         this.user_id = user_id;
         this.username = username;
         this.userTeritory = userTeritory;
+        this.userMoney = 0;
     },
 
     get_user_id() {
         return this.user_id;
     },
-
-    set_user_id(id) {
-        this.user_id = id;
-    }
 }
 
 const party_info = {
@@ -89,5 +85,6 @@ function join_party(method, value = null) {
     }
 }
 function generatePlayerId() {
+    console.log("génération d'ID de joueur");
     return '-' + Date.now().toString(36) + '-' + Math.random().toString(36).substring(2, 8);
 }

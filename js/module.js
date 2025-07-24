@@ -28,7 +28,6 @@ window.create_party = async function (name, owner) {
         if (!querySnapshot.empty) {
             return create_party(name, owner);
         }
-
         const owner = user_info.get_user_id() || "xmax_le_owner";
         const name = prompt("Nom de la partie ?") || "Partie sans nom";
         setDoc(doc(db, "party", code), {
