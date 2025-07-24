@@ -64,12 +64,14 @@
             return;
         }
         let partycode = localStorage.getItem("CurrentPartyCode") || "";
-
+        const newUserid = Date.now().toString(36) + '-' + Math.random().toString(36).substring(2, 8);
         user_info.set_user_info({
             code: partycode,
-            user_id: Date.now().toString(36) + '-' + Math.random().toString(36).substring(2, 8),
+            user_id: newUserid,
             username: nom
         });
+        localStorage.setItem("USER_ID", newUserid);
+
 
         if (sessionStorage.getItem("Wait_user_profile") === 'true') {
             sessionStorage.removeItem("Wait_user_profile");

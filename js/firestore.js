@@ -23,6 +23,11 @@ window.create_party = async function () {
         if (!querySnapshot.empty) {
             return create_party(name, owner);
         }
+        if (localStorage.getItem("USER_ID") === null) {
+            sessionStorage.setItem("Wait_user_profile", 'true');
+            window.location.href = "Profil_Creation.html";
+            return;
+        }
         const owner = user_info.get_user_id() || "xmax_le_owner";
         const name = prompt("Nom de la partie ?") || "Partie sans nom";
         setDoc(doc(db, "party", code), {

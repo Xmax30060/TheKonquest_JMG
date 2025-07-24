@@ -1,7 +1,6 @@
 const indexmenu = {
     join_party_by_code(Code = null){
-        if (!user_info.get_user_id()){
-            sessionStorage.setItem("Wait_user_profile", 'true');
+        if (localStorage.getItem("USER_ID") === null){
             window.location.href = "Profil_Creation.html";
             return;
         }
