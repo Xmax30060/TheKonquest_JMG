@@ -4,11 +4,11 @@ const indexmenu = {
             window.location.href = "Profil_Creation.html";
             return;
         }
-        const user_id = user_info.get_user_id();
+        const user_id = localStorage.getItem("USER_ID");
         if (!Code) console.log("No code found");
         const username = user_info.username;
         user_info.set_user_info({ user_id, username, Code });
-        join_party(Code, user_id);
+        db_join_party(Code, user_id);
         localStorage.setItem("CurentPartyCode", Code);
         alert("Tu as rejoint la partie " + Code);
     },
