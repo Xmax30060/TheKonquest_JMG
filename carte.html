@@ -2,64 +2,59 @@
 <meta charset="utf-8" />
 <html lang="fr">
 <head>
-    <title>Carte Monde avec Territoires Regroupés (D3.js)</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <title>Carte Monde Territoires Optimisée Paramétrable</title>
     <style>
         body {
-            margin:0; overflow:hidden;
+            margin: 0; overflow: hidden;
             font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
             background: #eef4fb;
             user-select:none;
-            -webkit-tap-highlight-color: transparent;
         }
         #toolbar {
             position: absolute;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
+            top: 10px; left: 10px;
             background: white;
-            padding: 8px 14px;
+            padding: 10px 14px;
             border-radius: 8px;
             box-shadow: 0 2px 12px rgba(0,0,0,0.12);
             display: flex;
             gap: 10px;
-            align-items: center;
-            z-index: 1000;
             flex-wrap: wrap;
+            max-width: 400px;
+            z-index: 1000;
         }
-        #territoryCount {
-            width: 80px;
+        label {
+            font-size: 0.9rem;
+            margin-right: 4px;
+            white-space: nowrap;
+        }
+        input[type=number] {
+            width: 70px;
+            padding: 4px 6px;
             font-size: 1rem;
-            padding: 6px 8px;
             border: 1px solid #ccc;
-            border-radius: 4px;
-            outline-offset: 2px;
+            border-radius: 6px;
         }
         button {
             font-size: 1rem;
-            padding: 8px 14px;
+            padding: 6px 14px;
             border: none;
             border-radius: 6px;
             background: #1d71b8;
             color: white;
             cursor: pointer;
             transition: background 0.25s ease;
-            user-select:none;
+            flex-grow: 1;
+            max-width: 150px;
         }
-        button:hover, button:focus {
+        button:hover {
             background: #155a85;
-            outline: none;
-        }
-        button:disabled {
-            background: #999;
-            cursor: default;
         }
         svg {
             width: 100vw;
             height: 100vh;
             cursor: grab;
             background: #a5c9ff;
-            touch-action: none; /* important pour mobile touch+zoom */
         }
         svg:active {
             cursor: grabbing;
@@ -95,42 +90,24 @@
             user-select:none;
             z-index: 10000;
         }
-        #loading {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.7);
-            color: white;
-            padding: 12px 24px;
-            font-size: 1.2rem;
-            border-radius: 10px;
-            display: none;
-            z-index: 1100;
-            user-select:none;
-        }
     </style>
 </head>
 <body>
 <div id="toolbar">
-    <label for="territoryCount">Nombre territoires :</label>
-    <input type="number" id="territoryCount" value="20" min="5" max="50" step="1" />
-    <button id="generateBtn">Générer</button>
-    <button id="resetBtn" title="Retour zoom">Retour</button>
+    <button id="Back" href="index.html">Retour</button>
+    <span id="loading" style="display:none; margin-left:10px; font-style:italic;">Chargement...</span>
 </div>
 <svg></svg>
 <div id="tooltip"></div>
-<div id="loading">Chargement...</div>
 
 <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson@3"></script>
+
 <script>
     const svg = d3.select("svg");
     const width = window.innerWidth;
     const height = window.innerHeight;
 
-    const loadingDiv = document.getElementById("loading");
-
-    // Projection Plate-Carrée simplifiée
     const projection = d3.geoEquirectangular()
         .scale(width / (2 * Math.PI))
         .translate([width/2, height/2]);
@@ -138,35 +115,160 @@
     const path = d3.geoPath(projection);
 
     const tooltip = d3.select("#tooltip");
-
     let territoriesGroup, labelsGroup;
 
-    // Zoom behaviour
     const zoom = d3.zoom()
         .scaleExtent([1, 8])
         .on("zoom", (event) => {
             territoriesGroup.attr("transform", event.transform);
             labelsGroup.attr("transform", event.transform);
+            labelsGroup.attr("font-size", 10 / event.transform.k);
         });
-
     svg.call(zoom);
 
-    function resetZoom() {
-        svg.transition().duration(700).call(zoom.transform, d3.zoomIdentity);
+    // Ramer-Douglas-Peucker simplification polygon
+    function simplifyRDP(points, epsilon) {
+        if(points.length < 3) return points;
+
+        const sqrDist = (p1, p2) => {
+            const dx = p1[0] - p2[0];
+            const dy = p1[1] - p2[1];
+            return dx*dx + dy*dy;
+        };
+
+        function perpendicularDistance(pt, lineStart, lineEnd) {
+            const x = pt[0], y = pt[1];
+            const x1 = lineStart[0], y1 = lineStart[1];
+            const x2 = lineEnd[0], y2 = lineEnd[1];
+
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+
+            if(dx === 0 && dy === 0) {
+                return Math.sqrt(sqrDist(pt, lineStart));
+            }
+
+            const t = ((x - x1)*dx + (y - y1)*dy) / (dx*dx + dy*dy);
+            let proj;
+            if(t < 0) proj = lineStart;
+            else if(t > 1) proj = lineEnd;
+            else proj = [x1 + t*dx, y1 + t*dy];
+
+            return Math.sqrt(sqrDist(pt, proj));
+        }
+
+        function rdp(points, epsilon) {
+            let maxDist = 0;
+            let index = -1;
+            for(let i=1; i < points.length-1; i++) {
+                const dist = perpendicularDistance(points[i], points[0], points[points.length-1]);
+                if(dist > maxDist) {
+                    index = i;
+                    maxDist = dist;
+                }
+            }
+
+            if(maxDist > epsilon) {
+                const left = rdp(points.slice(0, index+1), epsilon);
+                const right = rdp(points.slice(index), epsilon);
+
+                return left.slice(0, -1).concat(right);
+            } else {
+                return [points[0], points[points.length-1]];
+            }
+        }
+
+        return rdp(points, epsilon);
     }
 
-    // Fonction regroupTerritories inchangée
-    function regroupTerritories(features, n) {
-        const centroids = features.map(f => {
-            const c = d3.geoCentroid(f);
-            return {feature: f, centroid: c};
-        });
+    // Simplifie GeoJSON Polygon ou MultiPolygon selon tolérance epsilon
+    function simplifyFeature(feature, epsilon=0.5) {
+        const geom = feature.geometry;
 
+        if(geom.type === "Polygon") {
+            const simplifiedCoords = geom.coordinates.map(ring => simplifyRDP(ring, epsilon));
+            return {
+                ...feature,
+                geometry: {type: "Polygon", coordinates: simplifiedCoords}
+            };
+        } else if(geom.type === "MultiPolygon") {
+            const simplifiedCoords = geom.coordinates.map(polygon =>
+                polygon.map(ring => simplifyRDP(ring, epsilon))
+            );
+            return {
+                ...feature,
+                geometry: {type: "MultiPolygon", coordinates: simplifiedCoords}
+            };
+        }
+        return feature;
+    }
+
+    // Arrondir coordonnées GeoJSON à une précision donnée
+    function roundCoordinates(feature, precision=2) {
+        function roundCoord(coord) {
+            return coord.map(ring =>
+                ring.map(point =>
+                    point.map(c => +c.toFixed(precision))
+                )
+            );
+        }
+        const geom = feature.geometry;
+
+        if(geom.type === "Polygon") {
+            return {
+                ...feature,
+                geometry: {type: "Polygon", coordinates: roundCoord(geom.coordinates)}
+            };
+        } else if(geom.type === "MultiPolygon") {
+            return {
+                ...feature,
+                geometry: {
+                    type: "MultiPolygon",
+                    coordinates: geom.coordinates.map(roundCoord)
+                }
+            };
+        }
+        return feature;
+    }
+
+    // Distance euclidienne simple lon/lat
+    function lonLatDistance(a, b) {
+        const dx = a[0]-b[0];
+        const dy = a[1]-b[1];
+        return Math.sqrt(dx*dx + dy*dy);
+    }
+
+    // Regroupe features en n territoires avec k-means et seuil distance minimum entre centroïdes
+    function regroupTerritories(features, n, epsilon, minDist, precision) {
+        // Simplification + arrondi
+        const simpleFeatures = features.map(f => roundCoordinates(simplifyFeature(f, epsilon), precision));
+
+        // Calcul centroïdes
+        const centroids = simpleFeatures.map(f => ({feature: f, centroid: d3.geoCentroid(f)}));
+
+        // Init clusters en évitant centroïdes trop proches
         let clusters = [];
         let usedIndices = new Set();
-        while(clusters.length < n){
+
+        function isFarEnough(cand) {
+            return clusters.every(c => lonLatDistance(c.centroid, cand) > minDist);
+        }
+
+        for(let i=0; i<centroids.length && clusters.length < n; i++) {
+            const c = centroids[i];
+            if(isFarEnough(c.centroid)) {
+                clusters.push({
+                    id: clusters.length,
+                    centroid: c.centroid.slice(),
+                    features: []
+                });
+                usedIndices.add(i);
+            }
+        }
+
+        while(clusters.length < n) {
             const idx = Math.floor(Math.random() * centroids.length);
-            if(!usedIndices.has(idx)){
+            if(!usedIndices.has(idx)) {
                 clusters.push({
                     id: clusters.length,
                     centroid: centroids[idx].centroid.slice(),
@@ -176,7 +278,8 @@
             }
         }
 
-        function distance(a,b) {
+        // K-means
+        function dist(a,b) {
             const dx = a[0]-b[0];
             const dy = a[1]-b[1];
             return dx*dx + dy*dy;
@@ -184,68 +287,68 @@
 
         let moved = true;
         let iter = 0;
-        const maxIter = 15;
+        const maxIter = 20;
 
-        while(moved && iter < maxIter){
+        while(moved && iter < maxIter) {
             iter++;
             clusters.forEach(c => c.features = []);
-            centroids.forEach(c => {
+            centroids.forEach(cen => {
                 let bestCluster = clusters[0];
-                let bestDist = distance(c.centroid, bestCluster.centroid);
-                for(let i=1; i<clusters.length; i++){
-                    let dist = distance(c.centroid, clusters[i].centroid);
-                    if(dist < bestDist){
+                let bestDist = dist(cen.centroid, bestCluster.centroid);
+                for(let i=1; i<clusters.length; i++) {
+                    const cd = dist(cen.centroid, clusters[i].centroid);
+                    if(cd < bestDist) {
                         bestCluster = clusters[i];
-                        bestDist = dist;
+                        bestDist = cd;
                     }
                 }
-                bestCluster.features.push(c.feature);
+                bestCluster.features.push(cen.feature);
             });
             moved = false;
             clusters.forEach(c => {
                 if(c.features.length === 0) return;
                 let x = 0, y = 0;
                 c.features.forEach(f => {
-                    const center = d3.geoCentroid(f);
-                    x += center[0];
-                    y += center[1];
+                    const ctd = d3.geoCentroid(f);
+                    x += ctd[0];
+                    y += ctd[1];
                 });
                 x /= c.features.length;
                 y /= c.features.length;
-                if(distance(c.centroid,[x,y]) > 1e-6){
-                    moved = true;
+
+                if(dist(c.centroid,[x,y]) > 1e-8){
                     c.centroid = [x,y];
+                    moved = true;
                 }
             });
         }
 
-        const merged = clusters.map((c,i) => {
-            const multiCoords = [];
-            c.features.forEach(f => {
-                if(f.geometry.type === "Polygon"){
-                    multiCoords.push(f.geometry.coordinates);
-                } else if(f.geometry.type === "MultiPolygon"){
-                    f.geometry.coordinates.forEach(mc => multiCoords.push(mc));
-                }
-            });
-            return {
+        // Fusionne features des clusters en MultiPolygon
+        return clusters.map(c => {
+            const combined = {
                 type: "Feature",
                 geometry: {
                     type: "MultiPolygon",
-                    coordinates: multiCoords
+                    coordinates: []
                 },
                 properties: {
-                    name: `Territoire #${i+1}`
+                    name: `Territoire ${c.id+1}`
                 }
             };
+            c.features.forEach(f => {
+                if(f.geometry.type === "Polygon") {
+                    combined.geometry.coordinates.push(f.geometry.coordinates);
+                } else if(f.geometry.type === "MultiPolygon") {
+                    combined.geometry.coordinates.push(...f.geometry.coordinates);
+                }
+            });
+            return combined;
         });
-
-        return merged;
     }
 
+    // Affiche la carte
     function renderMap(territories) {
         svg.selectAll("*").remove();
-
         territoriesGroup = svg.append("g");
         labelsGroup = svg.append("g");
 
@@ -253,89 +356,58 @@
             .data(territories)
             .join("path")
             .attr("class", "territory")
-            .attr("fill", (d,i) => d3.interpolateTurbo(i / territories.length))
-            .attr("stroke", "#222")
-            .attr("stroke-width", 0.7)
             .attr("d", path)
-            .on("mousemove", (event, d) => {
+            .attr("fill", (_,i) => d3.interpolateTurbo(i / territories.length))
+            .on("mousemove", (event,d) => {
                 tooltip.style("display", "block")
-                    .style("left", (event.pageX + 12) + "px")
-                    .style("top", (event.pageY + 12) + "px")
+                    .style("left", (event.pageX + 15) + "px")
+                    .style("top", (event.pageY + 15) + "px")
                     .text(d.properties.name);
             })
-            .on("mouseleave", () => {
+            .on("mouseout", () => {
                 tooltip.style("display", "none");
-            })
-            .on("click", (event, d) => {
-                const newName = prompt("Modifier le nom du territoire :", d.properties.name);
-                if(newName && newName.trim().length > 0){
-                    d.properties.name = newName.trim();
-                    renderLabels(territories);
-                }
             });
 
-        renderLabels(territories);
-    }
-
-    function renderLabels(territories) {
-        labelsGroup.selectAll("text").remove();
         labelsGroup.selectAll("text")
             .data(territories)
             .join("text")
             .attr("x", d => {
                 const c = d3.geoCentroid(d);
-                return projection(c)[0];
+                return isNaN(c[0]) ? 0 : projection(c)[0];
             })
             .attr("y", d => {
                 const c = d3.geoCentroid(d);
-                return projection(c)[1];
+                return isNaN(c[1]) ? 0 : projection(c)[1];
             })
-            .text(d => d.properties.name);
+            .text(d => d.properties.name)
+            .attr("font-size", 10)
+            .attr("text-anchor", "middle")
+            .style("pointer-events", "none")
+            .style("user-select", "none");
     }
 
-    async function main() {
-        const geoJsonPaysUrl = "https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson";
-        const geoData = await d3.json(geoJsonPaysUrl);
-        const features = geoData.features;
+    async function loadAndRender(n, epsilon, minDist, precision) {
+        d3.select("#loading").style("display", "inline");
+        try {
+            const world = await d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json");
+            const countries = topojson.feature(world, world.objects.countries).features;
 
-        const countInput = document.getElementById("territoryCount");
-        const generateBtn = document.getElementById("generateBtn");
-        const resetBtn = document.getElementById("resetBtn");
-
-        async function generate() {
-            loadingDiv.style.display = "block";
-            generateBtn.disabled = true;
-            resetBtn.disabled = true;
-            countInput.disabled = true;
-
-            // Permet de laisser le temps au navigateur d'afficher le loading avant calcul lourd
-            await new Promise(r => setTimeout(r, 50));
-
-            const n = Math.min(Math.max(parseInt(countInput.value), 5), 50);
-            const territories = regroupTerritories(features, n);
+            const territories = regroupTerritories(countries, n, epsilon, minDist, precision);
             renderMap(territories);
-
-            loadingDiv.style.display = "none";
-            generateBtn.disabled = false;
-            resetBtn.disabled = false;
-            countInput.disabled = false;
+        } catch(e) {
+            alert("Erreur de chargement des données : " + e);
+            console.error(e);
         }
-
-        generateBtn.onclick = generate;
-        resetBtn.onclick = resetZoom;
-
-        generate();
-
-        // Adaptation taille svg au resize
-        window.addEventListener("resize", () => {
-            svg.attr("width", window.innerWidth).attr("height", window.innerHeight);
-            projection.translate([window.innerWidth/2, window.innerHeight/2])
-                .scale(window.innerWidth / (2 * Math.PI));
-            renderMap(territoriesGroup.data ? territoriesGroup.data() : []);
-        });
+        d3.select("#loading").style("display", "none");
     }
+    // Initial load with defaults
+    loadAndRender(
+        +170,
+        +0,
+        +0,
+        +100
+    );
 
-    main();
 </script>
 </body>
 </html>
