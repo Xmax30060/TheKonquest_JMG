@@ -1,6 +1,5 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, doc, setDoc, getDocs, query, getDoc, updateDoc, where } from "firebase/firestore";
-import { user_info } from "./app";
 
 declare global {
   interface Window {
