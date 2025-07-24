@@ -61,14 +61,14 @@ window.create_party = create_party;
 window.db_join_party = async function (code, memberId) {
     try {
         const q = query(collection(db, "party"), where("code", "==", code));
-        const querySnapshot = await getDoc(q);
+        const querySnapshot = await getDocs(q);
 
-        if (!querySnapshot.exists()) {
+        if (!querySnapshot.empty) {
             console.log("Aucune party trouvée avec le code :", code);
             return false;
         }
 
-        const partyDoc = querySnapshot.get(code);
+        const partyDoc = querySnapshot.docs[0];
         const partyData = partyDoc.data();
 
         const members = partyData.members || [];
