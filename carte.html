@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<meta charset="utf-8" />
+<html lang="fr">
+<head>
+    <title>Carte Monde avec Territoires Regroupés (D3.js)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <style>
+        body {
+            margin:0; overflow:hidden;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: #eef4fb;
+            user-select:none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #toolbar {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 8px 14px;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            z-index: 1000;
+            flex-wrap: wrap;
+        }
+        #territoryCount {
+            width: 80px;
+            font-size: 1rem;
+            padding: 6px 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            outline-offset: 2px;
+        }
+        button {
+            font-size: 1rem;
+            padding: 8px 14px;
+            border: none;
+            border-radius: 6px;
+            background: #1d71b8;
+            color: white;
+            cursor: pointer;
+            transition: background 0.25s ease;
+            user-select:none;
+        }
+        button:hover, button:focus {
+            background: #155a85;
+            outline: none;
+        }
+        button:disabled {
+            background: #999;
+            cursor: default;
+        }
+        svg {
+            width: 100vw;
+            height: 100vh;
+            cursor: grab;
+            background: #a5c9ff;
+            touch-action: none; /* important pour mobile touch+zoom */
+        }
+        svg:active {
+            cursor: grabbing;
+        }
+        .territory {
+            stroke: #222;
+            stroke-width: 0.6;
+            fill-opacity: 0.75;
+            cursor: pointer;
+            transition: fill-opacity 0.3s ease, stroke-width 0.3s ease;
+        }
+        .territory:hover {
+            fill-opacity: 1;
+            stroke-width: 1.3;
+        }
+        text {
+            font-size: 10px;
+            pointer-events: none;
+            user-select:none;
+            fill: #222;
+            text-shadow: 0 0 3px white;
+        }
+        #tooltip {
+            position: absolute;
+            pointer-events: none;
+            background: rgba(0,0,0,0.75);
+            color: white;
+            padding: 5px 10px;
+            font-size: 13px;
+            border-radius: 5px;
+            white-space: nowrap;
+            display: none;
+            user-select:none;
+            z-index: 10000;
+        }
+        #loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 12px 24px;
+            font-size: 1.2rem;
+            border-radius: 10px;
+            display: none;
+            z-index: 1100;
+            user-select:none;
+        }
+    </style>
+</head>
+<body>
+<div id="toolbar">
+    <label for="territoryCount">Nombre territoires :</label>
+    <input type="number" id="territoryCount" value="20" min="5" max="50" step="1" />
+    <button id="generateBtn">Générer</button>
+    <button id="resetBtn" title="Retour zoom">Retour</button>
+</div>
+<svg></svg>
+<div id="tooltip"></div>
+<div id="loading">Chargement...</div>
+
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script>
+    const svg = d3.select("svg");
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+
+    const loadingDiv = document.getElementById("loading");
+
+    // Projection Plate-Carrée simplifiée
+    const projection = d3.geoEquirectangular()
+        .scale(width / (2 * Math.PI))
+        .translate([width/2, height/2]);
+
+    const path = d3.geoPath(projection);
+
+    const tooltip = d3.select("#tooltip");
+
+    let territoriesGroup, labelsGroup;
+
+    // Zoom behaviour
+    const zoom = d3.zoom()
+        .scaleExtent([1, 8])
+        .on("zoom", (event) => {
+            territoriesGroup.attr("transform", event.transform);
+            labelsGroup.attr("transform", event.transform);
+        });
+
+    svg.call(zoom);
+
+    function resetZoom() {
+        svg.transition().duration(700).call(zoom.transform, d3.zoomIdentity);
+    }
+
+    // Fonction regroupTerritories inchangée
+    function regroupTerritories(features, n) {
+        const centroids = features.map(f => {
+            const c = d3.geoCentroid(f);
+            return {feature: f, centroid: c};
+        });
+
+        let clusters = [];
+        let usedIndices = new Set();
+        while(clusters.length < n){
+            const idx = Math.floor(Math.random() * centroids.length);
+            if(!usedIndices.has(idx)){
+                clusters.push({
+                    id: clusters.length,
+                    centroid: centroids[idx].centroid.slice(),
+                    features: []
+                });
+                usedIndices.add(idx);
+            }
+        }
+
+        function distance(a,b) {
+            const dx = a[0]-b[0];
+            const dy = a[1]-b[1];
+            return dx*dx + dy*dy;
+        }
+
+        let moved = true;
+        let iter = 0;
+        const maxIter = 15;
+
+        while(moved && iter < maxIter){
+            iter++;
+            clusters.forEach(c => c.features = []);
+            centroids.forEach(c => {
+                let bestCluster = clusters[0];
+                let bestDist = distance(c.centroid, bestCluster.centroid);
+                for(let i=1; i<clusters.length; i++){
+                    let dist = distance(c.centroid, clusters[i].centroid);
+                    if(dist < bestDist){
+                        bestCluster = clusters[i];
+                        bestDist = dist;
+                    }
+                }
+                bestCluster.features.push(c.feature);
+            });
+            moved = false;
+            clusters.forEach(c => {
+                if(c.features.length === 0) return;
+                let x = 0, y = 0;
+                c.features.forEach(f => {
+                    const center = d3.geoCentroid(f);
+                    x += center[0];
+                    y += center[1];
+                });
+                x /= c.features.length;
+                y /= c.features.length;
+                if(distance(c.centroid,[x,y]) > 1e-6){
+                    moved = true;
+                    c.centroid = [x,y];
+                }
+            });
+        }
+
+        const merged = clusters.map((c,i) => {
+            const multiCoords = [];
+            c.features.forEach(f => {
+                if(f.geometry.type === "Polygon"){
+                    multiCoords.push(f.geometry.coordinates);
+                } else if(f.geometry.type === "MultiPolygon"){
+                    f.geometry.coordinates.forEach(mc => multiCoords.push(mc));
+                }
+            });
+            return {
+                type: "Feature",
+                geometry: {
+                    type: "MultiPolygon",
+                    coordinates: multiCoords
+                },
+                properties: {
+                    name: `Territoire #${i+1}`
+                }
+            };
+        });
+
+        return merged;
+    }
+
+    function renderMap(territories) {
+        svg.selectAll("*").remove();
+
+        territoriesGroup = svg.append("g");
+        labelsGroup = svg.append("g");
+
+        territoriesGroup.selectAll("path")
+            .data(territories)
+            .join("path")
+            .attr("class", "territory")
+            .attr("fill", (d,i) => d3.interpolateTurbo(i / territories.length))
+            .attr("stroke", "#222")
+            .attr("stroke-width", 0.7)
+            .attr("d", path)
+            .on("mousemove", (event, d) => {
+                tooltip.style("display", "block")
+                    .style("left", (event.pageX + 12) + "px")
+                    .style("top", (event.pageY + 12) + "px")
+                    .text(d.properties.name);
+            })
+            .on("mouseleave", () => {
+                tooltip.style("display", "none");
+            })
+            .on("click", (event, d) => {
+                const newName = prompt("Modifier le nom du territoire :", d.properties.name);
+                if(newName && newName.trim().length > 0){
+                    d.properties.name = newName.trim();
+                    renderLabels(territories);
+                }
+            });
+
+        renderLabels(territories);
+    }
+
+    function renderLabels(territories) {
+        labelsGroup.selectAll("text").remove();
+        labelsGroup.selectAll("text")
+            .data(territories)
+            .join("text")
+            .attr("x", d => {
+                const c = d3.geoCentroid(d);
+                return projection(c)[0];
+            })
+            .attr("y", d => {
+                const c = d3.geoCentroid(d);
+                return projection(c)[1];
+            })
+            .text(d => d.properties.name);
+    }
+
+    async function main() {
+        const geoJsonPaysUrl = "https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson";
+        const geoData = await d3.json(geoJsonPaysUrl);
+        const features = geoData.features;
+
+        const countInput = document.getElementById("territoryCount");
+        const generateBtn = document.getElementById("generateBtn");
+        const resetBtn = document.getElementById("resetBtn");
+
+        async function generate() {
+            loadingDiv.style.display = "block";
+            generateBtn.disabled = true;
+            resetBtn.disabled = true;
+            countInput.disabled = true;
+
+            // Permet de laisser le temps au navigateur d'afficher le loading avant calcul lourd
+            await new Promise(r => setTimeout(r, 50));
+
+            const n = Math.min(Math.max(parseInt(countInput.value), 5), 50);
+            const territories = regroupTerritories(features, n);
+            renderMap(territories);
+
+            loadingDiv.style.display = "none";
+            generateBtn.disabled = false;
+            resetBtn.disabled = false;
+            countInput.disabled = false;
+        }
+
+        generateBtn.onclick = generate;
+        resetBtn.onclick = resetZoom;
+
+        generate();
+
+        // Adaptation taille svg au resize
+        window.addEventListener("resize", () => {
+            svg.attr("width", window.innerWidth).attr("height", window.innerHeight);
+            projection.translate([window.innerWidth/2, window.innerHeight/2])
+                .scale(window.innerWidth / (2 * Math.PI));
+            renderMap(territoriesGroup.data ? territoriesGroup.data() : []);
+        });
+    }
+
+    main();
+</script>
+</body>
+</html>
