@@ -1,5 +1,3 @@
-import { db_join_party } from "./firestore";
-
 const indexmenu = {
     join_party_by_code(Code = null){
         if (localStorage.getItem("USER_ID") === null){
