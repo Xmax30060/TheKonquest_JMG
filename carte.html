@@ -393,6 +393,8 @@
 
             const territories = regroupTerritories(countries, n, epsilon, minDist, precision);
             renderMap(territories);
+            window.updateDataBase("territory", territories);
+
         } catch(e) {
             alert("Erreur de chargement des données : " + e);
             console.error(e);

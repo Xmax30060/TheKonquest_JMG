@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Konquest - Menu</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background-color: #ccc;
+            display: grid;
+            grid-template-areas:
+        "stats        central       combats"
+        "actionsPol   central       tchat"
+        "actions      actions       actions";
+            grid-template-columns: 200px 1fr 250px;
+            grid-template-rows: auto 1fr auto;
+            height: 100vh;
+            gap: 10px;
+            padding: 10px;
+        }
+
+        /* Zones */
+        #statistiques {
+            grid-area: stats;
+            background: #aaa;
+            padding: 10px;
+        }
+
+        #combats {
+            grid-area: combats;
+            background: #999;
+            padding: 10px;
+        }
+
+        #tchat {
+            grid-area: tchat;
+            background: #888;
+            padding: 10px;
+        }
+
+        #actions {
+            grid-area: actions;
+            background: #777;
+            text-align: center;
+            padding: 20px;
+            font-size: 1.5em;
+        }
+
+        #actionsPolitiques {
+            grid-area: actionsPol;
+            background: #999;
+            padding: 10px;
+            text-align: center;
+        }
+
+        #central {
+            grid-area: central;
+            background: #e0e0e0;
+            border: 2px dashed #aaa;
+        }
+
+        /* Boutons */
+        button {
+            font-family: 'Orbitron', sans-serif;
+            background-color: #555;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px 0;
+            width: 100%;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #333;
+        }
+
+        h2 {
+            margin-bottom: 10px;
+        }
+
+        /* Scrollable tchat */
+        #tchat {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        #tchat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            background: #666;
+            padding: 10px;
+            margin-bottom: 10px;
+            color: white;
+        }
+
+        #tchat-input {
+            display: flex;
+        }
+
+        #tchat-input input {
+            flex-grow: 1;
+            padding: 5px;
+        }
+
+        #tchat-input button {
+            width: 40px;
+            padding: 5px;
+            background-color: green;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Zone de Statistiques -->
+<div id="statistiques">
+    <h2>Statistiques</h2>
+    <p>Évènements, moral, probabilités...</p>
+</div>
+
+<!-- Zone Combats -->
+<div id="combats">
+    <h2>Combats</h2>
+    <button>VS Bleu</button>
+    <button>VS Jaune</button>
+</div>
+
+<!-- Espace central vide -->
+<div id="central">
+    <!-- Grand espace vide pour plus tard -->
+</div>
+
+<!-- Zone Actions Politiques -->
+<div id="actionsPolitiques">
+    <button>Actions Politiques</button>
+</div>
+
+<!-- Zone Tchat -->
+<div id="tchat">
+    <div id="tchat-messages">
+        <p>Message 1</p>
+        <p>Message 2</p>
+        <p>Message 3</p>
+    </div>
+    <div id="tchat-input">
+        <input type="text" placeholder="Message...">
+        <button>✓</button>
+    </div>
+</div>
+
+<!-- Bouton Actions -->
+<div id="actions">
+    <button style="font-size: 1.5em;">Actions</button>
+</div>
+
+</body>
+</html>

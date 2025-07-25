@@ -34,7 +34,8 @@ window.create_party = async function () {
             code: code,
             name: name,
             owner: owner,
-            members: [owner]
+            members: [owner],
+            teritory: []
         });
         console.log("Party créée avec ID :", code);
         document.getElementById("game-code").innerText = code;
@@ -77,7 +78,7 @@ window.db_join_party = async function (code, name) {
         console.error("Erreur d'ajout :", e);
     }
 }
-window.getInfo_party = async function () {
+window.getInfo_party = async function (){
     try {
         const code = localStorage.getItem("CurentPartyCode");
         if (!code) {
@@ -100,8 +101,31 @@ window.getInfo_party = async function () {
             party_members: partyData.members || [],
             party_territory: []
         });
+        return party_info;
     } catch (e) {
         console.error("Erreur de récupération des infos de la partie :", e);
     }
-
 }
+window.updateDataBase = async function (dataName, data) {
+    try {
+        const code = localStorage.getItem("CurentPartyCode");
+        if (!code) {
+            console.error("Aucun code trouvé dans localStorage.");
+            return;
+        }
+        const q = query(collection(db, "party"), where("code", "==", code));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+            const docRef = querySnapshot.docs[0].ref;
+            await updateDoc(docRef, {
+                [dataName]: data
+            });
+            console.log("Mise à jour réussie !");
+        } else {
+            console.error("Aucun document trouvé avec le code :", code);
+        }
+    } catch (e) {
+        console.error("Erreur lors de la mise à jour :", e);
+    }
+};

@@ -9,13 +9,14 @@ const indexmenu = {
         const username = user_info.username;
         user_info.set_user_info({ user_id, username, Code });
         db_join_party(Code, user_id);
-
         alert("Tu as rejoint la partie " + Code);
+        window.location.href = "carte.html";
     },
     join_last_party(){
         const party_code = localStorage.getItem("CurentPartyCode");
         if (party_code) db_join_party(party_code,localStorage.getItem('USER_ID'));
         alert("Tu as rejoint la partie " + party_code);
+        window.location.href = "carte.html";
     }
 }
 
