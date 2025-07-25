@@ -9,7 +9,7 @@ const indexmenu = {
         const username = user_info.username;
         user_info.set_user_info({ user_id, username, Code });
         db_join_party(Code, user_id);
-        localStorage.setItem("CurentPartyCode", Code);
+
         alert("Tu as rejoint la partie " + Code);
     },
     join_last_party(){

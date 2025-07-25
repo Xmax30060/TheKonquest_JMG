@@ -56,12 +56,11 @@ window.db_join_party = async function (code, name) {
 
         const q = query(collection(db, "party"), where("code", "==", code));
         const querySnapshot = await getDocs(q);
-
         if (querySnapshot.empty) {
             console.log("Aucune party trouvée avec le code :", code);
             return false;
         }
-
+        localStorage.setItem("CurentPartyCode", code);
         const partyDoc = querySnapshot.docs[0];
         const partyData = partyDoc.data();
 
