@@ -74,7 +74,7 @@ window.db_join_party = async function (code, name) {
         await updateDoc(doc(db, "party", partyDoc.id), {
             members: members
         });
-        console.log("Party rejoint avec ID :", docRef.id);
+        console.log("Party rejoint avec ID :", partyDoc.id);
     } catch (e) {
         console.error("Erreur d'ajout :", e);
     }
