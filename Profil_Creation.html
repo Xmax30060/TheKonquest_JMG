@@ -64,7 +64,10 @@
             return;
         }
         let partycode = localStorage.getItem("CurrentPartyCode") || "";
-        const newUserid = Date.now().toString(36) + '-' + Math.random().toString(36).substring(2, 8);
+        const array = new Uint8Array(6);
+        window.crypto.getRandomValues(array);
+        const randomString = Array.from(array, byte => byte.toString(36).padStart(2, '0')).join('');
+        const newUserid = Date.now().toString(36) + '-' + randomString;
         user_info.set_user_info({
             code: partycode,
             user_id: newUserid,
