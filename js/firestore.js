@@ -53,7 +53,6 @@ window.create_party = async function () {
 
 window.db_join_party = async function (code, name) {
     try {
-
         const q = query(collection(db, "party"), where("code", "==", code));
         const querySnapshot = await getDocs(q);
         if (querySnapshot.empty) {
@@ -77,4 +76,32 @@ window.db_join_party = async function (code, name) {
     } catch (e) {
         console.error("Erreur d'ajout :", e);
     }
+}
+window.getInfo_party = async function () {
+    try {
+        const code = localStorage.getItem("CurentPartyCode");
+        if (!code) {
+            console.log("Aucune party trouvée");
+            return;
+        }
+        const q = query(collection(db, "party"), where("code", "==", code));
+        const querySnapshot = await getDocs(q);
+        if (querySnapshot.empty) {
+            console.log("Aucune party trouvée avec le code :", code);
+            return;
+        }
+        const partyDoc = querySnapshot.docs[0];
+        const partyData = partyDoc.data();
+        party_info.set_party_info({
+            party_id: partyDoc.id,
+            party_code: partyData.code,
+            party_name: partyData.name,
+            party_owner: partyData.owner,
+            party_members: partyData.members || [],
+            party_territory: []
+        });
+    } catch (e) {
+        console.error("Erreur de récupération des infos de la partie :", e);
+    }
+
 }
