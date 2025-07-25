@@ -28,7 +28,7 @@ window.create_party = async function () {
             window.location.href = "Profil_Creation.html";
             return;
         }
-        const owner = user_info.get_user_id() || "xmax_le_owner";
+        const owner = localStorage.getItem('USER_ID');
         const name = prompt("Nom de la partie ?") || "Partie sans nom";
         setDoc(doc(db, "party", code), {
             code: code,

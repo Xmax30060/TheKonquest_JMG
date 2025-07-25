@@ -14,7 +14,7 @@ const indexmenu = {
     },
     join_last_party(){
         const party_code = localStorage.getItem("CurentPartyCode");
-        if (party_code) db_join_party(party_code,user_info.user_id);
+        if (party_code) db_join_party(party_code,localStorage.getItem('USER_ID'));
         alert("Tu as rejoint la partie " + party_code);
     }
 }
